@@ -1,0 +1,7 @@
+serviceAccountKey.json
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
