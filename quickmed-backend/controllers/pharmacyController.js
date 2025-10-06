@@ -25,7 +25,26 @@ export const registerPharmacy = async (req, res) => {
 };
 
 
+// Get pharmacy by ID
+export const getPharmacyById = async (req, res) => {
+  try {
+    const { pharmacyId } = req.params;
 
+    if (!pharmacyId) {
+      return res.status(400).json({ success: false, error: "Pharmacy ID required" });
+    }
+    const doc = await db.collection("pharmacies").doc(pharmacyId).get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, error: "Pharmacy not found" });
+    }
+    const data = { id: doc.id, ...doc.data() };
+    return res.status(200).json({ success: true, ...data });
+  } catch (error) {
+    console.error("Error fetching pharmacy:", error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
 
 // Add stock 
 export const addStock = async (req, res) => {
