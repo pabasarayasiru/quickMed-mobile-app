@@ -13,6 +13,8 @@ import {
   getPharmacyById,
 } from "../controllers/pharmacyController.js";
 
+import { subscribeToPharmacy, unsubscribeFromPharmacy } from "../controllers/subscriptionController.js";
+
 const router = express.Router();
 
 router.post("/register", registerPharmacy);
@@ -30,5 +32,7 @@ router.delete("/:pharmacyId/stock/:medicineId", deleteStockById);
 
 
 router.get("/:pharmacyId", getPharmacyById);
+router.post("/:pharmacyId/subscribe", subscribeToPharmacy);
+router.post("/:pharmacyId/unsubscribe", unsubscribeFromPharmacy);
 
 export default router;

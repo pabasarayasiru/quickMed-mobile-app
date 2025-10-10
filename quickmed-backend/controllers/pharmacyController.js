@@ -65,6 +65,24 @@ export const addStock = async (req, res) => {
       displayName: medicine,          
       quantity,
     });
+
+
+
+    // Notify subscribers
+    const subsSnap = await db.collection("pharmacies").doc(pharmacyId).collection("subscribers").get();
+    const tokens = [];
+    for (const doc of subsSnap.docs) {
+      const userRef = await db.collection("users").doc(doc.id).get();
+      if (userRef.exists && userRef.data().token) tokens.push(userRef.data().token);
+    }
+
+    for (const token of tokens) {
+      await sendPushNotification(token, {
+        title: "New Stock Added",
+        body: `${medicine} is now available at your subscribed pharmacy!`,
+      });
+    }
+
     
     res.json({ success: true, message: "Medicine added" });
   } catch (error) {
@@ -147,6 +165,24 @@ export const deleteStockById = async (req, res) => {
     if (!docSnap.exists) return res.status(404).json({ error: "Medicine not found" });
 
     await docRef.delete();
+
+
+    // Notify subscribers
+    const subsSnap = await db.collection("pharmacies").doc(pharmacyId).collection("subscribers").get();
+    const tokens = [];
+    for (const doc of subsSnap.docs) {
+      const userRef = await db.collection("users").doc(doc.id).get();
+      if (userRef.exists && userRef.data().token) tokens.push(userRef.data().token);
+    }
+
+    for (const token of tokens) {
+      await sendPushNotification(token, {
+        title: "Stock Removed",
+        body: `${medicineId} was removed from ${pharmacyId}`,
+      });
+    }
+
+
     res.json({ success: true, message: "Medicine deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });
