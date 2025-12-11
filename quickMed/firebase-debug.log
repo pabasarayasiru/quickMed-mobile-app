@@ -1,0 +1,68 @@
+[debug] [2025-10-01T17:52:18.328Z] ----------------------------------------------------------------------
+[debug] [2025-10-01T17:52:18.331Z] Command:       C:\nvm4w\nodejs\node.exe C:\Users\Yasiru\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2025-10-01T17:52:18.331Z] CLI Version:   14.17.0
+[debug] [2025-10-01T17:52:18.331Z] Platform:      win32
+[debug] [2025-10-01T17:52:18.331Z] Node Version:  v22.14.0
+[debug] [2025-10-01T17:52:18.331Z] Time:          Wed Oct 01 2025 23:22:18 GMT+0530 (India Standard Time)
+[debug] [2025-10-01T17:52:18.332Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-01T17:52:18.339Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-01T17:52:18.340Z] > authorizing via signed-in user (pabasara.yasiru@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\Yasiru\Downloads\Semester 7\Mobile computing - new\App\quickMed
+
+[debug] [2025-10-01T17:56:19.417Z] ExitPromptError: User force closed the prompt with SIGINT
+    at Interface.sigint (C:\Users\Yasiru\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\@inquirer\core\dist\commonjs\lib\create-prompt.js:101:37)
+    at Interface.emit (node:events:518:28)
+    at Interface.emit (node:domain:489:12)
+    at [_ttyWrite] [as _ttyWrite] (node:internal/readline/interface:1124:18)
+    at ReadStream.onkeypress (node:internal/readline/interface:263:20)
+    at ReadStream.emit (node:events:530:35)
+    at ReadStream.emit (node:domain:489:12)
+    at emitKeys (node:internal/readline/utils:370:14)
+    at emitKeys.next (<anonymous>)
+    at ReadStream.onData (node:internal/readline/emitKeypressEvents:64:36)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2025-10-01T18:20:38.489Z] ----------------------------------------------------------------------
+[debug] [2025-10-01T18:20:38.491Z] Command:       C:\nvm4w\nodejs\node.exe C:\Users\Yasiru\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2025-10-01T18:20:38.491Z] CLI Version:   14.17.0
+[debug] [2025-10-01T18:20:38.491Z] Platform:      win32
+[debug] [2025-10-01T18:20:38.491Z] Node Version:  v22.14.0
+[debug] [2025-10-01T18:20:38.491Z] Time:          Wed Oct 01 2025 23:50:38 GMT+0530 (India Standard Time)
+[debug] [2025-10-01T18:20:38.491Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-01T18:20:38.495Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-01T18:20:38.496Z] > authorizing via signed-in user (pabasara.yasiru@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\Yasiru\Downloads\Semester 7\Mobile computing - new\App\quickMed
+
+[debug] [2025-10-01T18:21:38.888Z] ExitPromptError: User force closed the prompt with SIGINT
+    at Interface.sigint (C:\Users\Yasiru\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\@inquirer\core\dist\commonjs\lib\create-prompt.js:101:37)
+    at Interface.emit (node:events:518:28)
+    at Interface.emit (node:domain:489:12)
+    at [_ttyWrite] [as _ttyWrite] (node:internal/readline/interface:1124:18)
+    at ReadStream.onkeypress (node:internal/readline/interface:263:20)
+    at ReadStream.emit (node:events:530:35)
+    at ReadStream.emit (node:domain:489:12)
+    at emitKeys (node:internal/readline/utils:370:14)
+    at emitKeys.next (<anonymous>)
+    at ReadStream.onData (node:internal/readline/emitKeypressEvents:64:36)
+[error] 
+[error] Error: An unexpected error has occurred.

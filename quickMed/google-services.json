@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "734596121451",
+    "project_id": "quickmed-e6f22",
+    "storage_bucket": "quickmed-e6f22.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:734596121451:android:d0e9fbcf7077c37d46422e",
+        "android_client_info": {
+          "package_name": "com.quickmed.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxEr-6BgWVtzaTCDvxil-i7CcZesTmk8g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:734596121451:android:db739d44c2a32e5c46422e",
+        "android_client_info": {
+          "package_name": "com.quickmed.appa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxEr-6BgWVtzaTCDvxil-i7CcZesTmk8g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

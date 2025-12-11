@@ -1,0 +1,9 @@
+Tech Stack
+
+Frontend: React Native (with Expo)
+
+Backend/Database: Firebase (Firestore + Firebase Authentication)
+
+Notifications: Firebase Cloud Messaging (integrated via Expo Notifications API)
+
+Maps/Location: Expo Location + Google Maps SDK
