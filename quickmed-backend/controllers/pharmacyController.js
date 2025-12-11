@@ -1,5 +1,6 @@
 import { db, admin } from "../firebase.js";
 import { haversineDistance } from "../utils/distance.js";
+import { sendPushNotifications } from "../utils/notifications.js";
 
 // Register pharmacy
 export const registerPharmacy = async (req, res) => {
@@ -54,7 +55,13 @@ export const addStock = async (req, res) => {
       return res.status(400).json({ error: "Missing fields" });
 
     const stockRef = db.collection("pharmacies").doc(pharmacyId).collection("stock").doc(medicine.toLowerCase());
+    const pharmacyRef = db.collection("pharmacies").doc(pharmacyId);
     const snapshot = await stockRef.get();
+
+    
+    const pharmacySnap = await pharmacyRef.get();
+    const pharmacyData = pharmacySnap.data();
+    const pharmacyName = pharmacyData?.name || "Pharmacy";
 
     if (snapshot.exists) {
       return res.status(400).json({ error: "Medicine already exists. Use update instead." });
@@ -68,23 +75,33 @@ export const addStock = async (req, res) => {
 
 
 
-    // Notify subscribers
-    const subsSnap = await db.collection("pharmacies").doc(pharmacyId).collection("subscribers").get();
+    // Collect all subscriber tokens
+    const subsSnap = await db
+      .collection("pharmacies")
+      .doc(pharmacyId)
+      .collection("subscribers")
+      .get();
+
     const tokens = [];
-    for (const doc of subsSnap.docs) {
-      const userRef = await db.collection("users").doc(doc.id).get();
-      if (userRef.exists && userRef.data().token) tokens.push(userRef.data().token);
-    }
+    subsSnap.forEach((doc) => {
+      const data = doc.data();
+      if (data.expoPushToken) {
+        tokens.push(data.expoPushToken);
+      }
+    });
 
-    for (const token of tokens) {
-      await sendPushNotification(token, {
-        title: "New Stock Added",
-        body: `${medicine} is now available at your subscribed pharmacy!`,
-      });
-    }
+    // Send notification 
+    await sendPushNotifications(
+      tokens,
+      "New Medicine Added 💊",
+      `${medicine} is now available at ${pharmacyName} pharmacy.`
+    );
 
-    
-    res.json({ success: true, message: "Medicine added" });
+    res.json({
+      success: true,
+      message: "Medicine added and subscribers notified.",
+    });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -160,30 +177,52 @@ export const deleteStockById = async (req, res) => {
   try {
     const { pharmacyId, medicineId } = req.params;
     const docRef = db.collection("pharmacies").doc(pharmacyId).collection("stock").doc(medicineId);
+    const pharmacyRef = db.collection("pharmacies").doc(pharmacyId);
 
+    const medSnap = await docRef.get();
+    if (!medSnap.exists) return res.status(404).json({ error: "Medicine not found" });
+
+    const medicineData = medSnap.data();
+    const medicineName = medicineData.medicineName || medicineData.name || "Medicine";
+    
+    
+    const pharmacySnap = await pharmacyRef.get();
+    const pharmacyData = pharmacySnap.data();
+    const pharmacyName = pharmacyData?.name || "Pharmacy";
+    
     const docSnap = await docRef.get();
     if (!docSnap.exists) return res.status(404).json({ error: "Medicine not found" });
 
     await docRef.delete();
 
 
-    // Notify subscribers
-    const subsSnap = await db.collection("pharmacies").doc(pharmacyId).collection("subscribers").get();
-    const tokens = [];
-    for (const doc of subsSnap.docs) {
-      const userRef = await db.collection("users").doc(doc.id).get();
-      if (userRef.exists && userRef.data().token) tokens.push(userRef.data().token);
-    }
+    // Collect all subscriber tokens
+    const subsSnap = await db
+      .collection("pharmacies")
+      .doc(pharmacyId)
+      .collection("subscribers")
+      .get();
 
-    for (const token of tokens) {
-      await sendPushNotification(token, {
-        title: "Stock Removed",
-        body: `${medicineId} was removed from ${pharmacyId}`,
+      const tokens = [];
+      subsSnap.forEach((doc) => {
+        const data = doc.data();
+        if (data.expoPushToken) {
+          tokens.push(data.expoPushToken);
+        }
       });
-    }
 
+      // Send notification 
+      await sendPushNotifications(
+        tokens,
+        "Stock Removed",
+        `${medicineName} is no longer available at ${pharmacyName} pharmacy.`
+      );
 
-    res.json({ success: true, message: "Medicine deleted" });
+      res.json({
+        success: true,
+        message: "Medicine removed and subscribers notified.",
+      });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -255,7 +294,9 @@ export const searchPharmacies = async (req, res) => {
 // Get all pharmacies
 export const getAllPharmacies = async (req, res) => {
   try {
-    const snapshot = await db.collection("pharmacies").get();
+    const snapshot = await db.collection("pharmacies")
+    .select("name", "phone", "location")
+    .get();
     const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.json({ success: true, results });
   } catch (error) {
@@ -273,7 +314,7 @@ export const getNearestPharmacies = async (req, res) => {
   try {
     const { lat, lng } = req.query; 
     if (!lat || !lng) {
-      return res.status(400).json({ error: "Missing lat/lng" });
+      return res.status(400).json({ error: "Provide latitude & longitude" });
     }
 
     const snapshot = await db.collection("pharmacies").get();
@@ -292,7 +333,7 @@ export const getNearestPharmacies = async (req, res) => {
         );
         return { ...pharmacy, distance };
       }
-      return { ...pharmacy, distance: Infinity };
+      return { ...pharmacy, distance: null };
     });
 
     const nearest = withDistance

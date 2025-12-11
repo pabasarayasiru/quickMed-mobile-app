@@ -1,28 +1,40 @@
 import fetch from "node-fetch";
 
-export async function sendPushNotification(expoPushToken, title, body) {
+const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
+
+/**
+ * Send push notifications to multiple tokens.
+ * @param {string[]} tokens - Array of Expo push tokens.
+ * @param {string} title - Notification title.
+ * @param {string} body - Notification message body.
+ */
+
+export async function sendPushNotifications(tokens, title, body) {
+  if (!tokens || tokens.length === 0) {
+    console.log("No tokens to notify.");
+    return;
+  }
+
   try {
-    const message = {
-      to: expoPushToken,
+    const messages = tokens.map((token) => ({
+      to: token,
       sound: "default",
       title,
       body,
-    };
+    }));
 
-    // Expo Push endpoint — no need for FCM directly in Expo client
-    const response = await fetch("https://exp.host/--/api/v2/push/send", {
+    const response = await fetch(EXPO_PUSH_URL, {
       method: "POST",
       headers: {
-        Accept: "application/json",
-        "Accept-encoding": "gzip, deflate",
+        "Accept": "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(message),
+      body: JSON.stringify(messages),
     });
 
-    const data = await response.json();
-    console.log("Expo push response:", data);
+    const result = await response.json();
+    console.log("Push notification response:", result);
   } catch (error) {
-    console.error("Error sending push:", error);
+    console.error("Error sending push notifications:", error);
   }
 }

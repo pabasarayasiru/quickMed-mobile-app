@@ -3,7 +3,7 @@ import { db } from "../firebase.js";
 export const subscribeToPharmacy = async (req, res) => {
   try {
     const { pharmacyId } = req.params;
-    const { userId } = req.body;
+    const { userId , expoPushToken } = req.body;
 
     if (!pharmacyId || !userId)
       return res.status(400).json({ error: "Missing pharmacyId or userId" });
@@ -13,7 +13,7 @@ export const subscribeToPharmacy = async (req, res) => {
       .doc(pharmacyId)
       .collection("subscribers")
       .doc(userId)
-      .set({ userId, subscribedAt: new Date() });
+      .set({ userId, expoPushToken, subscribedAt: new Date() });
 
     res.json({ success: true, message: "Subscribed to pharmacy" });
   } catch (error) {
