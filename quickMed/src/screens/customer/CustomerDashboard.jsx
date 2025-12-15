@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View,FlatList, Alert, Linking } from "react-native";
-import { searchMedicine, fetchPharmacies, subscribePharmacy, unsubscribePharmacy} from "../../services/api";
+import { searchMedicine, fetchPharmacies, subscribePharmacy, unsubscribePharmacy, subscribeMedicine} from "../../services/api";
 import CustomInput from "../../components/CustomInput";
 import CustomButton from "../../components/CustomButton";
 import CardItem from "../../components/CardItem";
@@ -9,7 +9,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db} from "../../services/firebaseConfig";
 import { doc, getDoc, getDocs, collection } from "firebase/firestore";
 import colours from "../../constants/colours";
-import { showLocalNotification } from "../../services/notifications";
+import { showLocalNotification, getExpoPushToken } from "../../services/notifications";
 
 export default function CustomerDashboard({ navigation, setActiveTab, userId, setUserId, setUserType,location }) {
   const [medicine, setMedicine] = useState("");
@@ -112,6 +112,26 @@ export default function CustomerDashboard({ navigation, setActiveTab, userId, se
   };
 
 
+  const handleSubscribeMedicine = async (medicine) =>{
+    try {
+
+      const res = await subscribeMedicine(medicine, userId);
+
+      if (res.success) {
+        Alert.alert(
+          "Subscribed",
+          "You will be notified when this medicine is available."
+        );
+      } else {
+        Alert.alert("Error", res.message || "Subscription failed");
+      }
+
+    } catch (err) {
+      console.error("Subscribe error:", err);
+      Alert.alert("Error", "Failed to subscribe.")
+    }
+  };
+
   const handleSearchMedicine = async () => {
     if (!medicine) return Alert.alert("Enter medicine name");
     try {
@@ -119,7 +139,17 @@ export default function CustomerDashboard({ navigation, setActiveTab, userId, se
       if (res.success && res.results.length > 0) {
         navigation.navigate("CustomerMap", { results: res.results, medicine });
       } else {
-        Alert.alert("Not found", "No pharmacy has this medicine");
+        Alert.alert(
+          "This medicine is currently unavailable.",
+          "Would you like to subscribe and get notified when it becomes available",
+          [
+            { text: "Cancel", style: "cansel" },
+            {
+              text: "Subscribe",
+              onPress: () => handleSubscribeMedicine(medicine),
+            },
+          ]
+        );
       }
     } catch (error) {
       Alert.alert("Search error", error.message);

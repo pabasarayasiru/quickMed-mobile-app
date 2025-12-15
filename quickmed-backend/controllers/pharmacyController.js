@@ -97,6 +97,29 @@ export const addStock = async (req, res) => {
       `${medicine} is now available at ${pharmacyName} pharmacy.`
     );
 
+
+    //  notify subscribe user when medicine available
+    try {
+      const medicineSubs = await db
+        .collection("medicine_subscriptions")
+        .where("medicine", "==", medicine.toLowerCase())
+        .where("notified","==", false)
+        .get();
+
+      for (const doc of medicineSubs.docs){
+        const sub = doc.data();
+
+        await sendPushNotifications(
+          [sub.pushToken],
+          `${medicine} is now available at ${pharmacyName}`
+        );
+
+        await doc.ref.update({ notified: true });
+      }
+    } catch (err) {
+      console.error("Medicine subscription notification failed:", err.message);
+    }
+
     res.json({
       success: true,
       message: "Medicine added and subscribers notified.",

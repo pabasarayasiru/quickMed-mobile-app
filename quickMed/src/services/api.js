@@ -1,8 +1,8 @@
 import { haversineDistance } from "../utils/distance";
-import { registerForPushNotificationsAsync } from "./notifications";
+import { registerForPushNotificationsAsync, getExpoPushToken } from "./notifications";
 import { saveCache, loadCache, isOnline } from "./offlineCache";
 
-const BASE_URL = "http://10.105.91.91:3000"; 
+const BASE_URL = "http://10.10.41.91:3000"; 
 
 
 
@@ -344,4 +344,24 @@ export const fetchPharmacies = async (name = "", location = null) => {
   return { success:true, results:all };
 };
 
+// subscribe medicine
+
+export async function subscribeMedicine(medicine, userId) {
+  const expoPushToken = await getExpoPushToken();
+  console.log("Expo Push Token:", expoPushToken);
+
+  const res = await fetch(`${BASE_URL}/customer/subscribe-medicine`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      medicine,
+      userId,
+      expoPushToken,
+    }),
+  });
+
+  return res.json();
+}
 

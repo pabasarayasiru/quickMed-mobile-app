@@ -41,3 +41,36 @@ export const unsubscribeFromPharmacy = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const subscribeMedicine = async (req, res) => {
+  try {
+    const { userId, medicine, expoPushToken} = req.body;
+
+    if (!userId || !medicine || !expoPushToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing data",
+      });
+    }
+  
+  await db.collection("medicine_subscriptions").add({
+    userId,
+    medicine: medicine.toLowerCase(),
+    pushToken: expoPushToken,
+    notified: false,
+    createdAt: new Date(),
+
+  });
+
+  res.json({ success: true })
+  
+  } catch (error) {
+    console.error("Subscribe backend error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+
+}
+
