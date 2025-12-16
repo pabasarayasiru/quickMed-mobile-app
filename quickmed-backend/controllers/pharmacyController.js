@@ -111,6 +111,7 @@ export const addStock = async (req, res) => {
 
         await sendPushNotifications(
           [sub.pushToken],
+          "medicine Available 🚨",
           `${medicine} is now available at ${pharmacyName}`
         );
 
