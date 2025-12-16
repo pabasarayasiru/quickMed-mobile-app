@@ -114,7 +114,7 @@ export const addStock = async (req, res) => {
           `${medicine} is now available at ${pharmacyName}`
         );
 
-        await doc.ref.update({ notified: true });
+        // await doc.ref.update({ notified: true });
       }
     } catch (err) {
       console.error("Medicine subscription notification failed:", err.message);
