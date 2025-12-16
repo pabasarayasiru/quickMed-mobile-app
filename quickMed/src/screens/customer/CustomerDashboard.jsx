@@ -112,47 +112,86 @@ export default function CustomerDashboard({ navigation, setActiveTab, userId, se
   };
 
 
-  const handleSubscribeMedicine = async (medicine) =>{
-    try {
+  const handleSubscribeMedicine = async (medicine) => {
+    if (!userId) {
+      Alert.alert("Login Required", "Please log in to subscribe to medicines.");
+      setActiveTab("login");
+      return;
+    }
 
+    try {
+      console.log("Subscribing to medicine:", medicine, "User:", userId);
       const res = await subscribeMedicine(medicine, userId);
 
       if (res.success) {
         Alert.alert(
-          "Subscribed",
-          "You will be notified when this medicine is available."
+          "✅ Subscribed",
+          `You will be notified when ${medicine} becomes available.`
         );
+        console.log("Medicine subscription successful");
       } else {
-        Alert.alert("Error", res.message || "Subscription failed");
+        console.error("Subscription failed:", res.message);
+        Alert.alert(
+          "Subscription Failed",
+          res.message || "Unable to subscribe. Please try again."
+        );
       }
-
     } catch (err) {
       console.error("Subscribe error:", err);
-      Alert.alert("Error", "Failed to subscribe.")
+      Alert.alert(
+        "Error",
+        err.message || "Failed to subscribe. Check your connection."
+      );
     }
   };
 
   const handleSearchMedicine = async () => {
-    if (!medicine) return Alert.alert("Enter medicine name");
+    if (!medicine || !medicine.trim()) {
+      Alert.alert("Input Error", "Please enter a medicine name");
+      return;
+    }
+
+    if (!userId) {
+      Alert.alert("Login Required", "Please log in to search medicines.");
+      setActiveTab("login");
+      return;
+    }
+
     try {
+      console.log("Searching for medicine:", medicine);
       const res = await searchMedicine(medicine);
-      if (res.success && res.results.length > 0) {
-        navigation.navigate("CustomerMap", { results: res.results, medicine });
+
+      if (res.success && res.results && res.results.length > 0) {
+        console.log("Found medicines:", res.results.length);
+        navigation.navigate("CustomerMap", {
+          results: res.results,
+          medicine: medicine,
+        });
       } else {
+        console.log("Medicine not available:", medicine);
         Alert.alert(
-          "This medicine is currently unavailable.",
-          "Would you like to subscribe and get notified when it becomes available",
+          "💊 Medicine Not Available",
+          `${medicine} is currently unavailable. Would you like to subscribe and get notified when it becomes available?`,
           [
-            { text: "Cancel", style: "cansel" },
+            {
+              text: "Cancel",
+              onPress: () => console.log("Cancelled subscription"),
+              style: "cancel",
+            },
             {
               text: "Subscribe",
               onPress: () => handleSubscribeMedicine(medicine),
             },
-          ]
+          ],
+          { cancelable: false }
         );
       }
     } catch (error) {
-      Alert.alert("Search error", error.message);
+      console.error("Search error:", error);
+      Alert.alert(
+        "Search Error",
+        error.message || "Failed to search. Please try again."
+      );
     }
   };
 

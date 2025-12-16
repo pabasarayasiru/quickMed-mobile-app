@@ -98,27 +98,39 @@ export const addStock = async (req, res) => {
     );
 
 
-    //  notify subscribe user when medicine available
+    // Notify users who subscribed to this specific medicine
     try {
+      const medicineQuery = medicine.toLowerCase();
+      console.log(`🔍 Querying for subscriptions: medicine="${medicineQuery}", notified=false`);
+
       const medicineSubs = await db
         .collection("medicine_subscriptions")
-        .where("medicine", "==", medicine.toLowerCase())
-        .where("notified","==", false)
+        .where("medicine", "==", medicineQuery)
+        .where("notified", "==", false)
         .get();
 
-      for (const doc of medicineSubs.docs){
-        const sub = doc.data();
+      console.log(`Found ${medicineSubs.docs.length} subscriptions for medicine: ${medicine}`);
 
-        await sendPushNotifications(
-          [sub.pushToken],
-          "medicine Available 🚨",
-          `${medicine} is now available at ${pharmacyName}`
-        );
+      if (!medicineSubs.empty) {
+        for (const doc of medicineSubs.docs) {
+          const sub = doc.data();
+          console.log(`Notifying user ${sub.userId} about ${medicine}`);
 
-        // await doc.ref.update({ notified: true });
+          await sendPushNotifications(
+            [sub.pushToken],
+            "💊 Medicine Available!",
+            `${medicine} is now available at ${pharmacyName}`
+          );
+
+          // Delete subscription after notifying (cleanup)
+          await doc.ref.delete();
+          console.log(`🗑️ Deleted subscription for user: ${sub.userId}`);
+        }
+      } else {
+        console.log(`No pending subscriptions for medicine: ${medicine}`);
       }
     } catch (err) {
-      console.error("Medicine subscription notification failed:", err.message);
+      console.error("❌ Medicine subscription notification failed:", err.message);
     }
 
     res.json({
