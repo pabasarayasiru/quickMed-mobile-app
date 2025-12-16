@@ -44,7 +44,7 @@ export const unsubscribeFromPharmacy = async (req, res) => {
 
 export const subscribeMedicine = async (req, res) => {
   try {
-    const { userId, medicine, expoPushToken} = req.body;
+    const { userId, medicine, expoPushToken } = req.body;
 
     if (!userId || !medicine || !expoPushToken) {
       return res.status(400).json({
@@ -52,18 +52,39 @@ export const subscribeMedicine = async (req, res) => {
         message: "Missing data",
       });
     }
-  
-  await db.collection("medicine_subscriptions").add({
-    userId,
-    medicine: medicine.toLowerCase(),
-    pushToken: expoPushToken,
-    notified: false,
-    createdAt: new Date(),
 
-  });
+    const medicineQuery = medicine.toLowerCase();
 
-  res.json({ success: true })
-  
+    // Check if subscription already exists
+    const existingSubs = await db
+      .collection("medicine_subscriptions")
+      .where("userId", "==", userId)
+      .where("medicine", "==", medicineQuery)
+      .get();
+
+    if (!existingSubs.empty) {
+      // Update existing subscription (don't create duplicate)
+      const docRef = existingSubs.docs[0].ref;
+      await docRef.update({
+        pushToken: expoPushToken,
+        notified: false, // Reset notified flag in case token changed
+        updatedAt: new Date(),
+      });
+      console.log(`Updated existing subscription for user ${userId}, medicine ${medicineQuery}`);
+      return res.json({ success: true, message: "Subscription updated" });
+    }
+
+    // Create new subscription if doesn't exist
+    await db.collection("medicine_subscriptions").add({
+      userId,
+      medicine: medicineQuery,
+      pushToken: expoPushToken,
+      notified: false,
+      createdAt: new Date(),
+    });
+
+    console.log(`Created new subscription for user ${userId}, medicine ${medicineQuery}`);
+    return res.json({ success: true, message: "Subscription created" });
   } catch (error) {
     console.error("Subscribe backend error:", error);
     res.status(500).json({
@@ -71,6 +92,5 @@ export const subscribeMedicine = async (req, res) => {
       message: "Server error",
     });
   }
-
-}
+};
 
