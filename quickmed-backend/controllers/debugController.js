@@ -17,6 +17,22 @@ export const listMedicineSubscriptions = async (req, res) => {
   }
 };
 
+export const listPharmacySubscriptions = async (req, res) => {
+  try {
+    const snap = await db
+      .collection("subscribe_pharmacy")
+      .orderBy("subscribedAt", "desc")
+      .limit(50)
+      .get();
+
+    const results = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    return res.json({ success: true, results });
+  } catch (err) {
+    console.error("Debug listPharmacySubscriptions error:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 export const sendTestPush = async (req, res) => {
   try {
     const { token, title = "Test", body = "Test push" } = req.body;

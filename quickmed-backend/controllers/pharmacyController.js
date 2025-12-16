@@ -77,9 +77,8 @@ export const addStock = async (req, res) => {
 
     // Collect all subscriber tokens
     const subsSnap = await db
-      .collection("pharmacies")
-      .doc(pharmacyId)
-      .collection("subscribers")
+      .collection("subscribe_pharmacy")
+      .where("pharmacyId", "==", pharmacyId)
       .get();
 
     const tokens = [];
@@ -234,9 +233,8 @@ export const deleteStockById = async (req, res) => {
 
     // Collect all subscriber tokens
     const subsSnap = await db
-      .collection("pharmacies")
-      .doc(pharmacyId)
-      .collection("subscribers")
+      .collection("subscribe_pharmacy")
+      .where("pharmacyId", "==", pharmacyId)
       .get();
 
       const tokens = [];
