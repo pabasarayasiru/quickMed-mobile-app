@@ -48,12 +48,9 @@ export default function LandingScreen({ navigation }) {
       const b = await Location.requestBackgroundPermissionsAsync();
 
       if (f.status !== "granted") return Alert.alert("Location Denied");
-      if (b.status !== "granted") console.log("⚠ Background Location Not Allowed");
+      if (b.status !== "granted") console.log("Background Location Not Allowed");
 
-      const pos = await Location.getCurrentPositionAsync({});
-      setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-
-      monitorMobileContext();  // 🚀 STARTS LIVE LISTENERS
+      monitorMobileContext(); 
 
     })();
 
@@ -68,7 +65,7 @@ export default function LandingScreen({ navigation }) {
   }, []);
 
 
-  // 🔥 Fetch location ONCE for whole app (not per screen)
+  // Fetch location ONCE for whole app 
   useEffect(() => {
     const loadLocation = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -82,11 +79,10 @@ export default function LandingScreen({ navigation }) {
       });
 
       setLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
-      console.log("📍 Global Location loaded →", loc.coords);
     };
 
     loadLocation();
-  }, []); // runs only ONCE at app launch
+  }, []); 
 
 
 

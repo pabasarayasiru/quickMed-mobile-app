@@ -9,7 +9,6 @@ import {
   searchStock,
   searchPharmacies,
   getAllPharmacies,
-  getNearestPharmacies,
   getPharmacyById,
 } from "../controllers/pharmacyController.js";
 
@@ -19,7 +18,6 @@ const router = express.Router();
 
 router.post("/register", registerPharmacy);
 router.get("/search", searchPharmacies); 
-router.get("/nearest", getNearestPharmacies); 
 router.get("/allPharmacies", getAllPharmacies); 
 
 

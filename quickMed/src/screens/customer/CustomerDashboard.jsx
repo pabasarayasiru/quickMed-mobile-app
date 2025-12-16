@@ -146,7 +146,7 @@ export default function CustomerDashboard({ navigation, setActiveTab, userId, se
   
   useEffect(()=>{
     if(location){
-      console.log("🔄 Location changed → recompute nearest");
+      console.log("Location changed → recompute nearest");
       loadPharmacies();
     }
   },[location]);

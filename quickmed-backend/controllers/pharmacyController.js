@@ -1,5 +1,4 @@
 import { db, admin } from "../firebase.js";
-import { haversineDistance } from "../utils/distance.js";
 import { sendPushNotifications } from "../utils/notifications.js";
 
 // Register pharmacy
@@ -305,46 +304,6 @@ export const getAllPharmacies = async (req, res) => {
 };
 
 
-
-
-
-
-// Get nearest pharmacies (20) using Haversine formula
-export const getNearestPharmacies = async (req, res) => {
-  try {
-    const { lat, lng } = req.query; 
-    if (!lat || !lng) {
-      return res.status(400).json({ error: "Provide latitude & longitude" });
-    }
-
-    const snapshot = await db.collection("pharmacies").get();
-    const pharmacies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-    const withDistance = pharmacies.map(pharmacy => {
-      const lat2 = pharmacy.location?.lat ?? pharmacy.location?._latitude;
-      const lng2 = pharmacy.location?.lng ?? pharmacy.location?._longitude;
-
-      if (lat2 && lng2) {
-        const distance = haversineDistance(
-          parseFloat(lat),
-          parseFloat(lng),
-          lat2,
-          lng2
-        );
-        return { ...pharmacy, distance };
-      }
-      return { ...pharmacy, distance: null };
-    });
-
-    const nearest = withDistance
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, 20);
-
-    res.json({ success: true, results : nearest });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
 
 
 
