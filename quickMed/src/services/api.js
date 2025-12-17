@@ -2,7 +2,7 @@ import { haversineDistance } from "../utils/distance";
 import { registerForPushNotificationsAsync, getExpoPushToken } from "./notifications";
 import { saveCache, loadCache, isOnline } from "./offlineCache";
 
-const BASE_URL = "http://10.10.23.164:3000"; 
+const BASE_URL = "http://10.10.41.91:3000"; 
 
 
 

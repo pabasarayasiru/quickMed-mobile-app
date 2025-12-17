@@ -136,7 +136,7 @@ export default function CustomerDashboard({ navigation, setActiveTab, userId, se
 
       if (res.success) {
         Alert.alert(
-          "✅ Subscribed",
+          "Subscribed",
           `You will be notified when ${medicine} becomes available.`
         );
         console.log("Medicine subscription successful");
