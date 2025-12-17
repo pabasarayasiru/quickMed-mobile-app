@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { View,FlatList, Alert, Linking } from "react-native";
-import { searchMedicine, fetchPharmacies, subscribePharmacy, unsubscribePharmacy} from "../../services/api";
+import { searchMedicine, fetchPharmacies, subscribePharmacy, unsubscribePharmacy, subscribeMedicine} from "../../services/api";
 import CustomInput from "../../components/CustomInput";
 import CustomButton from "../../components/CustomButton";
 import CardItem from "../../components/CardItem";
 import Header from "../../components/Header";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db} from "../../services/firebaseConfig";
-import { doc, getDoc, getDocs, collection } from "firebase/firestore";
+import { doc, getDoc, getDocs, collection, query, where } from "firebase/firestore";
 import colours from "../../constants/colours";
-import { showLocalNotification } from "../../services/notifications";
+import { showLocalNotification, getExpoPushToken } from "../../services/notifications";
 
 export default function CustomerDashboard({ navigation, setActiveTab, userId, setUserId, setUserType,location }) {
   const [medicine, setMedicine] = useState("");
@@ -32,34 +32,41 @@ export default function CustomerDashboard({ navigation, setActiveTab, userId, se
             if (data.role === "pharmacy") {
               setUserType("pharmacy");
               console.log("User Type:", data.role);
-              return;
+            } else {
+              const customerDoc = await getDoc(doc(db, "customers", user.uid));
+              if (customerDoc.exists()) {
+                setUserType("customer");
+                console.log("User Type: customer");
+              } else {
+                setUserType(null);
+              }
+            }
+          } else {
+            const customerDoc = await getDoc(doc(db, "customers", user.uid));
+            if (customerDoc.exists()) {
+              setUserType("customer");
+              console.log("User Type: customer");
+            } else {
+              setUserType(null);
             }
           }
-
-          const customerDoc = await getDoc(doc(db, "customers", user.uid));
-          if (customerDoc.exists()) {
-            setUserType("customer");
-            console.log("User Type:", data.role);
-            return;
-          }
-          setUserType(null);
         } catch (err) {
           console.log("Error loading user type in Dashboard:", err);
         }
 
         try {
-          const allPharmacies = await getDocs(collection(db, "pharmacies"));
+          // Query subscribe_pharmacy collection for this user's subscriptions
+          const subsQuery = query(
+            collection(db, "subscribe_pharmacy"),
+            where("userId", "==", user.uid)
+          );
+          const subsSnapshot = await getDocs(subsQuery);
           const subs = {};
 
-          for (const docSnap of allPharmacies.docs) {
-            const subsRef = collection(db, "pharmacies", docSnap.id, "subscribers");
-            const subSnap = await getDocs(subsRef);
-            subSnap.forEach((subDoc) => {
-              if (subDoc.id === user.uid) {
-                subs[docSnap.id] = true;
-              }
-            });
-          }
+          subsSnapshot.forEach((doc) => {
+            const data = doc.data();
+            subs[data.pharmacyId] = true;
+          });
 
           setSubscriptions(subs);
           console.log("Loaded Subscriptions:", subs);
@@ -90,21 +97,25 @@ export default function CustomerDashboard({ navigation, setActiveTab, userId, se
 
     try {
       if (isSubscribed) {
-        await unsubscribePharmacy(pharmacyId, userId);
-        setSubscriptions((prev) => ({ ...prev, [pharmacyId]: false }));
-
-        // User unsubscribed → notification optional (we can skip)
-        showLocalNotification("Unsubscribed", `You unsubscribed from ${pharmacyName} pharmacy`, false);
-
-        Alert.alert("Unsubscribed", "You will no longer receive notifications.");
+        const res = await unsubscribePharmacy(pharmacyId, userId);
+        if (res && res.success) {
+          setSubscriptions((prev) => ({ ...prev, [pharmacyId]: false }));
+          showLocalNotification("Unsubscribed", `You unsubscribed from ${pharmacyName} pharmacy`, false);
+          Alert.alert("Unsubscribed", "You will no longer receive notifications.");
+        } else {
+          console.error("Unsubscribe failed:", res?.message);
+          Alert.alert("Unsubscribe Failed", res?.message || "Unable to unsubscribe. Try again.");
+        }
       } else {
-        await subscribePharmacy(pharmacyId, userId);
-        setSubscriptions((prev) => ({ ...prev, [pharmacyId]: true }));
-
-        // User subscribed → show notification
-        showLocalNotification("Subscribed!", `You will now receive updates from ${pharmacyName} pharmacy`, true);
-
-        Alert.alert("Subscribed", "You will now receive stock updates!");
+        const res = await subscribePharmacy(pharmacyId, userId);
+        if (res && res.success) {
+          setSubscriptions((prev) => ({ ...prev, [pharmacyId]: true }));
+          showLocalNotification("Subscribed!", `You will now receive updates from ${pharmacyName} pharmacy`, true);
+          Alert.alert("Subscribed", "You will now receive stock updates!");
+        } else {
+          console.error("Subscribe failed:", res?.message);
+          Alert.alert("Subscribe Failed", res?.message || "Unable to subscribe. Try again.");
+        }
       }
     } catch (error) {
       Alert.alert("Error", error.message);
@@ -112,17 +123,86 @@ export default function CustomerDashboard({ navigation, setActiveTab, userId, se
   };
 
 
-  const handleSearchMedicine = async () => {
-    if (!medicine) return Alert.alert("Enter medicine name");
+  const handleSubscribeMedicine = async (medicine) => {
+    if (!userId) {
+      Alert.alert("Login Required", "Please log in to subscribe to medicines.");
+      setActiveTab("login");
+      return;
+    }
+
     try {
-      const res = await searchMedicine(medicine);
-      if (res.success && res.results.length > 0) {
-        navigation.navigate("CustomerMap", { results: res.results, medicine });
+      console.log("Subscribing to medicine:", medicine, "User:", userId);
+      const res = await subscribeMedicine(medicine, userId);
+
+      if (res.success) {
+        Alert.alert(
+          "Subscribed",
+          `You will be notified when ${medicine} becomes available.`
+        );
+        console.log("Medicine subscription successful");
       } else {
-        Alert.alert("Not found", "No pharmacy has this medicine");
+        console.error("Subscription failed:", res.message);
+        Alert.alert(
+          "Subscription Failed",
+          res.message || "Unable to subscribe. Please try again."
+        );
+      }
+    } catch (err) {
+      console.error("Subscribe error:", err);
+      Alert.alert(
+        "Error",
+        err.message || "Failed to subscribe. Check your connection."
+      );
+    }
+  };
+
+  const handleSearchMedicine = async () => {
+    if (!medicine || !medicine.trim()) {
+      Alert.alert("Input Error", "Please enter a medicine name");
+      return;
+    }
+
+    if (!userId) {
+      Alert.alert("Login Required", "Please log in to search medicines.");
+      setActiveTab("login");
+      return;
+    }
+
+    try {
+      console.log("Searching for medicine:", medicine);
+      const res = await searchMedicine(medicine);
+
+      if (res.success && res.results && res.results.length > 0) {
+        console.log("Found medicines:", res.results.length);
+        navigation.navigate("CustomerMap", {
+          results: res.results,
+          medicine: medicine,
+        });
+      } else {
+        console.log("Medicine not available:", medicine);
+        Alert.alert(
+          "Medicine Not Available",
+          `${medicine} is currently unavailable. Would you like to subscribe and get notified when it becomes available?`,
+          [
+            {
+              text: "Cancel",
+              onPress: () => console.log("Cancelled subscription"),
+              style: "cancel",
+            },
+            {
+              text: "Subscribe",
+              onPress: () => handleSubscribeMedicine(medicine),
+            },
+          ],
+          { cancelable: false }
+        );
       }
     } catch (error) {
-      Alert.alert("Search error", error.message);
+      console.error("Search error:", error);
+      Alert.alert(
+        "Search Error",
+        error.message || "Failed to search. Please try again."
+      );
     }
   };
 

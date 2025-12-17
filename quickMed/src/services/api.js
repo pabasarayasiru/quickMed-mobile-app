@@ -1,9 +1,13 @@
 import { haversineDistance } from "../utils/distance";
-import { registerForPushNotificationsAsync } from "./notifications";
+import { registerForPushNotificationsAsync, getExpoPushToken } from "./notifications";
 import { saveCache, loadCache, isOnline } from "./offlineCache";
 import { getRealWalkingDistance } from "../utils/realRouteDistance";
 
+<<<<<<< HEAD
 const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL; 
+=======
+const BASE_URL = "http://10.10.41.91:3000"; 
+>>>>>>> pramod
 
 
 
@@ -350,28 +354,48 @@ export const searchPharmacies = async (name) => {
 
 // subscribe to a pharmacy
 export async function subscribePharmacy(pharmacyId, userId) {
-  const expoPushToken = await registerForPushNotificationsAsync(); // Get token
-  if (!expoPushToken) {
-    alert('Failed to get Expo push token');
-    return { success: false };
+  try {
+    const expoPushToken = await registerForPushNotificationsAsync(); // Get token
+    if (!expoPushToken) {
+      return { success: false, message: "Failed to get Expo push token" };
+    }
+
+    const res = await fetch(`${BASE_URL}/customer/subscribe-pharmacy/${pharmacyId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, expoPushToken }), // Send token
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      return { success: false, message: text || `HTTP ${res.status}` };
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("subscribePharmacy error:", error);
+    return { success: false, message: error.message };
   }
-
-  const res = await fetch(`${BASE_URL}/pharmacy/${pharmacyId}/subscribe`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, expoPushToken }), // Send token
-  });
-
-  return res.json();
 }
 
 export async function unsubscribePharmacy(pharmacyId, userId) {
-  const res = await fetch(`${BASE_URL}/pharmacy/${pharmacyId}/unsubscribe`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId }),
-  });
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/customer/unsubscribe-pharmacy/${pharmacyId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      return { success: false, message: text || `HTTP ${res.status}` };
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("unsubscribePharmacy error:", error);
+    return { success: false, message: error.message };
+  }
 }
 
 
@@ -448,6 +472,26 @@ export const fetchPharmacies = async (name = "", location = null) => {
   return { success:true, results:all };
 };
 
+// subscribe medicine
+
+export async function subscribeMedicine(medicine, userId) {
+  const expoPushToken = await getExpoPushToken();
+  console.log("Expo Push Token:", expoPushToken);
+
+  const res = await fetch(`${BASE_URL}/customer/subscribe-medicine`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      medicine,
+      userId,
+      expoPushToken,
+    }),
+  });
+
+  return res.json();
+}
 
 
 

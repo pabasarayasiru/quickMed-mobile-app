@@ -47,3 +47,13 @@ export async function showLocalNotification(title, body) {
     trigger: null,
   });
 }
+
+ export const getExpoPushToken = async () =>{
+  const {status}  = await Notifications.requestPermissionsAsync();
+  if (status !== "granted"){
+    throw new Error("Notification permission not granted");
+  }
+
+  const tokenData = await Notifications.getExpoPushTokenAsync();
+  return tokenData.data;
+}
