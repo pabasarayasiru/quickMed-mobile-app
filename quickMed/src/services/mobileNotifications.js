@@ -21,27 +21,6 @@ export async function monitorMobileContext() {
 
 
 
-  /* --------------------- 📍 GPS + MOVEMENT + GEOFENCE --------------------- */
-  Location.watchPositionAsync(
-    { accuracy: 4, distanceInterval: 20 }, // update every 20m
-    pos => {
-      const { latitude, longitude, speed } = pos.coords;
-      console.log("📍", latitude, longitude, "🚗 Speed:", speed);
-
-      // 🔥 GEOFENCE EXAMPLE (Sri Lanka Colombo Zone Sample)
-      if(latitude > 6.880 && latitude < 6.940 && longitude > 79.850 && longitude < 79.910){
-        showLocalNotification("🏥 Pharmacy Zone", "Nearby pharmacies detected");
-      }
-
-      // 🔥 MOVING FAST > 15 km/h
-      if(speed > 4.16){
-        showLocalNotification("🚗 Traveling Mode", "You're moving fast");
-      }
-    }
-  );
-
-
-
   /* --------------------- 🛰 GPS ENABLED? --------------------- */
   const gps = await Location.hasServicesEnabledAsync();
   if (!gps) {

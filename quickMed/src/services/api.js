@@ -430,6 +430,8 @@ export const fetchPharmacies = async (name = "", location = null) => {
   //   return { success:true, results: await getNearestPharmaciesLocal(location.lat, location.lng) };
   // }
 
+  
+
   if (location) {
     return {
       success: true,
@@ -523,15 +525,8 @@ export const getNearestPharmaciesReal = async (userLat, userLng, limit = 10) => 
 
         return { ...p, distance };
       } catch (err) {
-        // If routing fails, approximate using Haversine (slightly increased to reflect walking paths)
-        const fallback =
-          haversineDistance(
-            userLat,
-            userLng,
-            p.location._latitude,
-            p.location._longitude
-          ) * 1.3;
-        return { ...p, distance: fallback };
+        console.warn("Routing error for pharmacy:", p.name, err);
+        return { ...p, distance: Infinity };
       }
     })
   );
@@ -546,3 +541,6 @@ export const getNearestPharmaciesReal = async (userLat, userLng, limit = 10) => 
 
   return sorted;
 };
+
+
+
