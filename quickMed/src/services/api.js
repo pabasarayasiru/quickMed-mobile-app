@@ -3,11 +3,7 @@ import { registerForPushNotificationsAsync, getExpoPushToken } from "./notificat
 import { saveCache, loadCache, isOnline } from "./offlineCache";
 import { getRealWalkingDistance } from "../utils/realRouteDistance";
 
-<<<<<<< HEAD
 const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL; 
-=======
-const BASE_URL = "http://10.10.41.91:3000"; 
->>>>>>> pramod
 
 
 
@@ -321,37 +317,6 @@ export const fetchStocks = async (pharmacyId, name = "") => {
 
 
 
-
-
-
-
-
-// serch pharmacies
-export const searchPharmacies = async (name) => {
-  const cacheKey = `pharmacy_search_${name.toLowerCase()}`;
-  const online = await isOnline();
-
-  if (!online) {
-    return { success: true, results: await loadCache(cacheKey) || [] };
-  }
-
-  const res = await fetch(`${BASE_URL}/pharmacy/search?name=${encodeURIComponent(name)}`);
-  const data = await res.json();
-
-  if (data.success) saveCache(cacheKey, data.results);
-
-  return data;
-};
-
-
-
-
-
-
-
-
-
-
 // subscribe to a pharmacy
 export async function subscribePharmacy(pharmacyId, userId) {
   try {
@@ -397,6 +362,53 @@ export async function unsubscribePharmacy(pharmacyId, userId) {
     return { success: false, message: error.message };
   }
 }
+
+
+// subscribe medicine
+
+export async function subscribeMedicine(medicine, userId) {
+  const expoPushToken = await getExpoPushToken();
+  console.log("Expo Push Token:", expoPushToken);
+
+  const res = await fetch(`${BASE_URL}/customer/subscribe-medicine`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      medicine,
+      userId,
+      expoPushToken,
+    }),
+  });
+
+  return res.json();
+}
+
+
+
+
+
+
+
+
+// serch pharmacies
+export const searchPharmacies = async (name) => {
+  const cacheKey = `pharmacy_search_${name.toLowerCase()}`;
+  const online = await isOnline();
+
+  if (!online) {
+    return { success: true, results: await loadCache(cacheKey) || [] };
+  }
+
+  const res = await fetch(`${BASE_URL}/pharmacy/search?name=${encodeURIComponent(name)}`);
+  const data = await res.json();
+
+  if (data.success) saveCache(cacheKey, data.results);
+
+  return data;
+};
+
 
 
 
@@ -471,29 +483,6 @@ export const fetchPharmacies = async (name = "", location = null) => {
   const all = await getAllPharmacies();
   return { success:true, results:all };
 };
-
-// subscribe medicine
-
-export async function subscribeMedicine(medicine, userId) {
-  const expoPushToken = await getExpoPushToken();
-  console.log("Expo Push Token:", expoPushToken);
-
-  const res = await fetch(`${BASE_URL}/customer/subscribe-medicine`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      medicine,
-      userId,
-      expoPushToken,
-    }),
-  });
-
-  return res.json();
-}
-
-
 
 
 
