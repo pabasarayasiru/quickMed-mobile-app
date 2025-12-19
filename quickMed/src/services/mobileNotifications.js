@@ -5,7 +5,7 @@ import { showLocalNotification } from "./notifications";
 
 export async function monitorMobileContext() {
 
-  /* --------------------- 📡 INTERNET MONITOR --------------------- */
+
   let lastState = null;
 
   setInterval(async () => {
@@ -21,7 +21,7 @@ export async function monitorMobileContext() {
 
 
 
-  /* --------------------- 🛰 GPS ENABLED? --------------------- */
+
   const gps = await Location.hasServicesEnabledAsync();
   if (!gps) {
     showLocalNotification("📵 GPS Disabled", "Turn on location for best results");

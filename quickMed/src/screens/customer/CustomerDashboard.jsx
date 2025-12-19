@@ -162,12 +162,6 @@ export default function CustomerDashboard({ navigation, setActiveTab, userId, se
       return;
     }
 
-    if (!userId) {
-      Alert.alert("Login Required", "Please log in to search medicines.");
-      setActiveTab("login");
-      return;
-    }
-
     try {
       console.log("Searching for medicine:", medicine);
       const res = await searchMedicine(medicine);

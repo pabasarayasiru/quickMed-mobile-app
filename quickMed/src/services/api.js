@@ -492,7 +492,7 @@ export const fetchPharmacies = async (name = "", location = null) => {
 // Get nearest pharmacies with real walking distances
 
 
-export const getNearestPharmaciesReal = async (userLat, userLng, limit = 10) => {
+export const getNearestPharmaciesReal = async (userLat, userLng, limit = 20) => {
   const pharmacies = await getAllPharmacies();
 
   // cache key uses rounded coords to improve reuse
@@ -500,7 +500,6 @@ export const getNearestPharmaciesReal = async (userLat, userLng, limit = 10) => 
     userLng * 1000
   )}_${limit}`;
 
-  // Quick online check
   const online = await isOnline();
 
   // 1) If offline try to return previously cached real results
@@ -546,7 +545,7 @@ export const getNearestPharmaciesReal = async (userLat, userLng, limit = 10) => 
     })
     .filter(Boolean)
     .sort((a, b) => a.approxDistance - b.approxDistance)
-    .slice(0, 15); // small batch
+    .slice(0, 20);
 
   const routed = await Promise.all(
     candidates.map(async (p) => {
@@ -564,13 +563,11 @@ export const getNearestPharmaciesReal = async (userLat, userLng, limit = 10) => 
     })
   );
 
-  // Sort and cache the final result for offline reuse
+  // Sort 
   const sorted = routed.sort((a, b) => a.distance - b.distance).slice(0, limit);
   try {
     await saveCache(cacheKey, sorted);
-  } catch (err) {
-    // ignore cache errors
-  }
+  } catch (err) { }
 
   return sorted;
 };
