@@ -2,9 +2,8 @@ import admin from "firebase-admin";
 
 // Initialize only once
 if (!admin.apps.length) {
-
   const serviceAccount = JSON.parse(
-    process.env.FIREBASE_SERVICE_ACCOUNT
+    process.env.FIREBASE_SERVICE_ACCOUNT_KEY
   );
 
   serviceAccount.private_key =
